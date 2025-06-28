@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voucher Card</title>
+  <style>
+    :root {
+      --primary: #4a90e2;
+      --accent: #4cd964;
+      --bg: #f9fafb;
+      --card-bg: #ffffff;
+      --text: #333;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 1rem;
+    }
+
+    .voucher-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px var(--shadow);
+      max-width: 520px;
+      margin: auto;
+    }
+
+    .section {
+      margin-bottom: 1.5rem;
+    }
+
+    h2, h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    p {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 0.6rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      background: #f1f3f6;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: inset 0 2px 4px #e0e0e0;
+      transition: 0.3s ease;
+    }
+
+    .button-group button.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-top: 0.4rem;
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--accent);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .add-btn:hover {
+      background-color: #3ccf7a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fdfdfd;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px var(--shadow);
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.6rem;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: #f5f7fa;
+    }
+
+    .totals {
+      background: #fefefe;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px var(--shadow);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="voucher-card">
+    <div class="section">
+      <h2>Today: Voucher Provided</h2>
+      <p>Date: <span id="currentDate"></span></p>
+    </div>
+
+    <div class="section button-group">
+      <button id="createBtn" class="active">Voucher Create</button>
+      <button id="providedBtn">Voucher Provided</button>
+    </div>
+
+    <div class="section">
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" placeholder="Enter Amount">
+    </div>
+
+    <div class="section">
+      <label for="currency">Currency</label>
+      <select id="currency">
+        <option>INR</option>
+        <option>BRL</option>
+        <option>XOF</option>
+        <option>MYR</option>
+        <option>ARS</option>
+        <option>USD</option>
+        <option>XAF</option>
+        <option>RUB</option>
+        <option>TRY</option>
+        <option>AED</option>
+        <option>KZT</option>
+        <option>AMD</option>
+        <option>KES</option>
+        <option>CLP</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <button class="add-btn" onclick="addVoucher()">➕ Add Voucher</button>
+    </div>
+
+    <div class="section">
+      <h3>Created Vouchers</h3>
+      <table id="createTable">
+        <tr><th>Sr No.</th><th>Amount</th><th>Currency</th></tr>
+      </table>
+      <p>Total Created: <span id="createCount">0</span></p>
+    </div>
+
+    <div class="section">
+      <h3>Provided Vouchers</h3>
+      <table id="provideTable">
+        <tr><th>Sr No.</th><th>Amount</th><th>Currency</th></tr>
+      </table>
+      <p>Total Provided: <span id="provideCount">0</span></p>
+    </div>
+
+    <div class="totals" id="totals"></div>
+  </div>
+
+  <script>
+    const dateSpan = document.getElementById("currentDate");
+    const createBtn = document.getElementById("createBtn");
+    const providedBtn = document.getElementById("providedBtn");
+    const currencySelect = document.getElementById("currency");
+    const amountInput = document.getElementById("amount");
+    const createTable = document.getElementById("createTable");
+    const provideTable = document.getElementById("provideTable");
+    const totalsDiv = document.getElementById("totals");
+    const createCount = document.getElementById("createCount");
+    const provideCount = document.getElementById("provideCount");
+
+    let currentMode = "create";
+    let createData = [];
+    let provideData = [];
+
+    dateSpan.textContent = new Date().toLocaleDateString();
+
+    createBtn.onclick = () => {
+      currentMode = "create";
+      createBtn.classList.add("active");
+      providedBtn.classList.remove("active");
+    };
+    providedBtn.onclick = () => {
+      currentMode = "provide";
+      providedBtn.classList.add("active");
+      createBtn.classList.remove("active");
+    };
+
+    function addVoucher() {
+      const amount = parseFloat(amountInput.value);
+      const currency = currencySelect.value;
+      if (!amount || amount <= 0) return;
+
+      const entry = { amount, currency };
+      if (currentMode === "create") {
+        createData.push(entry);
+        renderTable(createTable, createData);
+        createCount.textContent = createData.length;
+      } else {
+        provideData.push(entry);
+        renderTable(provideTable, provideData);
+        provideCount.textContent = provideData.length;
+      }
+      updateTotals();
+      amountInput.value = "";
+    }
+
+    function renderTable(table, data) {
+      let rows = "<tr><th>Sr No.</th><th>Amount</th><th>Currency</th></tr>";
+      data.forEach((item, index) => {
+        rows += `<tr><td>${index + 1}</td><td>${item.amount}</td><td>${item.currency}</td></tr>`;
+      });
+      table.innerHTML = rows;
+    }
+
+    function updateTotals() {
+      const allData = [...createData, ...provideData];
+      const totals = {};
+
+      allData.forEach(item => {
+        if (!totals[item.currency]) totals[item.currency] = 0;
+        totals[item.currency] += item.amount;
+      });
+
+      let html = '<h4>Total Vouchers Summary</h4>';
+      html += '<ul>';
+      for (let currency in totals) {
+        html += `<li>${currency}: ${totals[currency].toFixed(2)}</li>`;
+      }
+      html += `</ul><strong>Total Vouchers: ${createData.length + provideData.length}</strong>`;
+      totalsDiv.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
